@@ -17,19 +17,52 @@ End-to-end pattern: **Apache Airflow 3** loads `employees.csv` into a **local Du
 - Docker Desktop (or compatible engine) with enough RAM/CPU for Airflow ([Airflow docs](https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#before-you-begin)).
 - Your CSV at `data/incoming/employees.csv` (or override `EMPLOYEES_LOCAL_PATH` in `.env`).
 
-## Local Airflow + dbt (Docker)
+## Run locally with Docker (step by step)
+
+1. **Install** [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Mac/Windows) or Docker Engine + Compose (Linux). Give Docker **at least ~4 GB RAM** in settings if things feel slow.
+
+2. **From the repo root** (`staff/`):
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   - **Linux only:** set `AIRFLOW_UID=$(id -u)` in `.env` so files in `./logs` and `./data` are not owned by root.
+   - **macOS:** leaving `AIRFLOW_UID=50000` as in `.env.example` is usually fine.
+
+3. **Put the CSV** where the DAG expects it:
+
+   ```bash
+   mkdir -p data/incoming
+   cp /path/to/employees.csv data/incoming/employees.csv
+   ```
+
+4. **Build and start** Airflow (first run builds the custom image; it can take several minutes):
+
+   ```bash
+   docker compose build
+   docker compose up -d
+   ```
+
+5. **Open the UI:** [http://localhost:8080](http://localhost:8080)  
+   Log in with `_AIRFLOW_WWW_USER_USERNAME` / `_AIRFLOW_WWW_USER_PASSWORD` from `.env` (defaults: `airflow` / `airflow`).
+
+6. **Run the pipeline:** find DAG **`employees_duckdb_dbt`**, turn it **On** (unpause), then **Trigger** it.
+
+7. **Stop** when done:
+
+   ```bash
+   docker compose down
+   ```
+
+   Your DuckDB file and CSV stay on the host under `./data/` (`staff.duckdb` is gitignored).
+
+## Local Airflow + dbt (Docker) — short version
 
 ```bash
 cp .env.example .env
-# On Linux, set AIRFLOW_UID=$(id -u) in .env.
-
-docker compose build
-docker compose up -d
+docker compose build && docker compose up -d
 ```
-
-Open the UI at `http://localhost:8080` (default user/password from `.env.example` unless changed).
-
-Unpause DAG **`employees_duckdb_dbt`** and trigger a run after `employees.csv` is under `data/incoming/`.
 
 The DAG runs:
 
