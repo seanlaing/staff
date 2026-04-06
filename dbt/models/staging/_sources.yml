@@ -2,8 +2,7 @@ version: 2
 
 sources:
   - name: raw
-    database: "{{ target.database }}"
-    schema: RAW
+    schema: raw
     tables:
       - name: employees_raw
-        description: "Land zone for employees.csv from Airflow COPY"
+        description: "Land zone for employees.csv loaded by Airflow into DuckDB"

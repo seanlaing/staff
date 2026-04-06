@@ -1,3 +1,4 @@
 # Pinned loosely for Airflow 3.1 + Python 3.12; adjust if resolver conflicts.
-apache-airflow-providers-snowflake>=5.8.0,<7.0.0
-dbt-snowflake>=1.9.0,<2.0.0
+apache-airflow-providers-standard>=1.0.0
+duckdb>=1.0.0,<2.0.0
+dbt-duckdb>=1.8.0,<2.0.0

@@ -1,16 +1,10 @@
-# Committed for Docker/CI; uses env vars only (no secrets in file).
-# Copy to ~/.dbt/profiles.yml locally if you run dbt outside Docker.
+# DuckDB file path via env (Docker: /opt/airflow/data/staff.duckdb; local: ./data/staff.duckdb).
 
 staff:
   target: dev
   outputs:
     dev:
-      type: snowflake
-      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
-      user: "{{ env_var('SNOWFLAKE_USER') }}"
-      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
-      role: "{{ env_var('SNOWFLAKE_ROLE', 'ACCOUNTADMIN') }}"
-      database: "{{ env_var('SNOWFLAKE_DATABASE') }}"
-      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
-      schema: STAGING
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH') }}"
+      schema: main
       threads: 4

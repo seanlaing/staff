@@ -1,1 +1,1 @@
-Place `employees.csv` here before triggering the DAG. This directory is mounted read/write at `/opt/airflow/data/incoming` in Airflow workers.
+Place `employees.csv` here. With Docker Compose, this folder is available inside containers as `/opt/airflow/data/incoming/`.

@@ -24,14 +24,9 @@ x-airflow-common:
     AIRFLOW__API_AUTH__JWT_ISSUER: ${AIRFLOW__API_AUTH__JWT_ISSUER:-airflow}
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
     AIRFLOW_CONFIG: "/opt/airflow/config/airflow.cfg"
-    # dbt + Snowflake (also configure Airflow Connection `snowflake_default` in UI or env)
-    SNOWFLAKE_ACCOUNT: ${SNOWFLAKE_ACCOUNT:-}
-    SNOWFLAKE_USER: ${SNOWFLAKE_USER:-}
-    SNOWFLAKE_PASSWORD: ${SNOWFLAKE_PASSWORD:-}
-    SNOWFLAKE_ROLE: ${SNOWFLAKE_ROLE:-}
-    SNOWFLAKE_DATABASE: ${SNOWFLAKE_DATABASE:-EMPLOYEES_ETL}
-    SNOWFLAKE_WAREHOUSE: ${SNOWFLAKE_WAREHOUSE:-COMPUTE_WH}
-    SNOWFLAKE_SCHEMA_RAW: ${SNOWFLAKE_SCHEMA_RAW:-RAW}
+    # Local DuckDB file + incoming CSV (see .env.example)
+    DUCKDB_PATH: ${DUCKDB_PATH:-/opt/airflow/data/staff.duckdb}
+    EMPLOYEES_LOCAL_PATH: ${EMPLOYEES_LOCAL_PATH:-/opt/airflow/data/incoming/employees.csv}
     DBT_PROFILES_DIR: /opt/airflow/dbt
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
@@ -39,7 +34,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR:-.}/dbt:/opt/airflow/dbt
-    - ${AIRFLOW_PROJ_DIR:-.}/data/incoming:/opt/airflow/data/incoming
+    - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/data
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on

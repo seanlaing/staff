@@ -16,3 +16,7 @@ dbt/logs/
 dbt/.user.yml
 
 .DS_Store
+
+# Local DuckDB database file(s)
+data/*.duckdb
+data/*.duckdb.wal
