@@ -1,10 +1,37 @@
 version: 2
 
 models:
-  - name: employees_deduped
-    description: "Cleaned employees with basic dedupe on name + phone"
+  - name: dim_employees
+    description: >
+      Clean employee dimension: removes rows with null/empty name, title, office, or phone;
+      dedupes on (employee_name, phone_digits). Use as the main entity table for BI tools.
     columns:
       - name: employee_name
         tests: [not_null]
+      - name: job_title
+        tests: [not_null]
+      - name: office
+        tests: [not_null]
       - name: phone_digits
         tests: [not_null]
+
+  - name: employees_deduped
+    description: Alias of dim_employees (legacy name).
+    columns:
+      - name: employee_name
+        tests: [not_null]
+
+  - name: mart_headcount_by_office
+    description: Aggregates by office for charts and slicers.
+    columns:
+      - name: office
+        tests: [not_null, unique]
+
+  - name: mart_headcount_by_title
+    description: Aggregates by job title.
+    columns:
+      - name: job_title
+        tests: [not_null, unique]
+
+  - name: mart_dashboard_kpis
+    description: One row of global KPIs for dashboard header widgets.

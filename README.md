@@ -9,7 +9,7 @@ End-to-end pattern: **Apache Airflow 3** loads `employees.csv` into a **local Du
 | `docker-compose.yaml` | Airflow 3.1.x (CeleryExecutor) + custom image |
 | `docker/airflow/` | Image extending `apache/airflow:3.1.8` with `duckdb`, `dbt-duckdb`, `standard` provider |
 | `dags/employees_etl.py` | Two DAGs: load CSV (producer **Asset**) → **asset-triggered** `dbt run` |
-| `dbt/` | dbt project (`stg_employees`, `employees_deduped`) |
+| `dbt/` | dbt: `stg_employees` → `dim_employees` + mart aggregates for dashboards |
 | `data/` | `incoming/employees.csv` input; `staff.duckdb` created at runtime (gitignored) |
 
 ## Prerequisites
@@ -85,8 +85,14 @@ If the database file does not exist yet, run the load step once (Airflow task or
 
 ## dbt models
 
-- **`stg_employees`** — trims fields, normalizes phone to digits.
-- **`employees_deduped`** — mart table, one row per `(employee_name, phone_digits)`.
+- **`stg_employees`** — trim fields, empty strings → null, phone digits only.
+- **`dim_employees`** — drops rows with null/empty **name, title, office**, or **phone** (requires `length(phone_digits) >= 10`); dedupes on `(employee_name, phone_digits)`.
+- **`employees_deduped`** — same as `dim_employees` (legacy name).
+- **`mart_headcount_by_office`** — counts + distinct titles per office (charts / filters).
+- **`mart_headcount_by_title`** — counts + office spread per title.
+- **`mart_dashboard_kpis`** — single-row KPIs (totals, distinct dimensions, refresh time).
+
+Point **Metabase, Lightdash, Hex, etc.** at the DuckDB file (or sync these tables elsewhere) and use the `mart_*` models for tiles and `dim_employees` for drill-through.
 
 ## CI
 
