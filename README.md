@@ -44,8 +44,10 @@ End-to-end pattern: **Apache Airflow 3** loads `employees.csv` into a **local Du
    docker compose up -d
    ```
 
-5. **Open the UI:** [http://localhost:8080](http://localhost:8080)  
+5. **Open the UI:** [http://localhost:8080](http://localhost:8080) (or `http://localhost:$AIRFLOW_WEB_PORT` if you changed it in `.env`).  
    Log in with `_AIRFLOW_WWW_USER_USERNAME` / `_AIRFLOW_WWW_USER_PASSWORD` from `.env` (defaults: `airflow` / `airflow`).
+
+   If Compose reports **“port is already allocated”** for `8080`, something else is using that port (another Airflow stack, a dev server, etc.). Set `AIRFLOW_WEB_PORT=8081` in `.env`, run `docker compose up -d` again, and open that port instead.
 
 6. **Run the pipeline:** find DAG **`employees_duckdb_dbt`**, turn it **On** (unpause), then **Trigger** it.
 
