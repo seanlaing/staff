@@ -8,7 +8,7 @@ End-to-end pattern: **Apache Airflow 3** loads `employees.csv` into a **local Du
 |------|---------|
 | `docker-compose.yaml` | Airflow 3.1.x (CeleryExecutor) + custom image |
 | `docker/airflow/` | Image extending `apache/airflow:3.1.8` with `duckdb`, `dbt-duckdb`, `standard` provider |
-| `dags/employees_etl.py` | Load CSV into `raw.employees_raw`, then `dbt run` |
+| `dags/employees_etl.py` | Two DAGs: load CSV (producer **Asset**) → **asset-triggered** `dbt run` |
 | `dbt/` | dbt project (`stg_employees`, `employees_deduped`) |
 | `data/` | `incoming/employees.csv` input; `staff.duckdb` created at runtime (gitignored) |
 
@@ -49,7 +49,9 @@ End-to-end pattern: **Apache Airflow 3** loads `employees.csv` into a **local Du
 
    If Compose reports **“port is already allocated”** for `8080`, something else is using that port (another Airflow stack, a dev server, etc.). Set `AIRFLOW_WEB_PORT=8081` in `.env`, run `docker compose up -d` again, and open that port instead.
 
-6. **Run the pipeline:** find DAG **`employees_duckdb_dbt`**, turn it **On** (unpause), then **Trigger** it.
+6. **Run the pipeline**
+   - Turn **On** both DAGs: **`employees_load_duckdb`** and **`employees_dbt_transform`**.
+   - **Trigger** **`employees_load_duckdb`** (manual or your own schedule). When **`load_csv_to_duckdb`** succeeds, Airflow updates the logical asset `staff://duckdb/raw/employees_raw` and **automatically schedules** a run of **`employees_dbt_transform`** (no separate trigger needed for dbt).
 
 7. **Stop** when done:
 
@@ -66,10 +68,7 @@ cp .env.example .env
 docker compose build && docker compose up -d
 ```
 
-The DAG runs:
-
-1. **`load_csv_to_duckdb`** — (re)builds `raw.employees_raw` from the CSV via `read_csv_auto`.
-2. **`dbt_run`** — `dbt run` against the file at `DUCKDB_PATH` (default `/opt/airflow/data/staff.duckdb` in the container).
+**Asset scheduling:** the load task declares `outlets=[Asset("staff://duckdb/raw/employees_raw")]`. The dbt DAG uses `schedule=[that same Asset]`, so it runs **after** each successful load. Check **Browse → Assets** in the UI to see the link between DAGs.
 
 ## dbt only on your machine (no Airflow)
 
