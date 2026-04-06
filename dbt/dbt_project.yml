@@ -1,0 +1,19 @@
+name: staff
+version: "1.0.0"
+config-version: 2
+profile: staff
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+clean-targets:
+  - target
+  - dbt_packages
+
+models:
+  staff:
+    staging:
+      +materialized: view
+      +schema: STAGING
+    marts:
+      +materialized: table
+      +schema: MART

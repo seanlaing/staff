@@ -1,0 +1,10 @@
+version: 2
+
+models:
+  - name: employees_deduped
+    description: "Cleaned employees with basic dedupe on name + phone"
+    columns:
+      - name: employee_name
+        tests: [not_null]
+      - name: phone_digits
+        tests: [not_null]

@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  dbt-parse:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dbt
+    env:
+      SNOWFLAKE_ACCOUNT: ci_fake
+      SNOWFLAKE_USER: ci
+      SNOWFLAKE_PASSWORD: ci
+      SNOWFLAKE_ROLE: ci
+      SNOWFLAKE_DATABASE: EMPLOYEES_ETL
+      SNOWFLAKE_WAREHOUSE: CI_WH
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dbt
+        run: pip install "dbt-snowflake>=1.9.0,<2.0.0"
+      - name: dbt parse
+        run: dbt parse --profiles-dir .
+
+  dag-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Parse DAG (AST only; no Airflow install on CI)
+        run: python -c "import ast; ast.parse(open('dags/employees_etl.py').read())"
+
+  compose-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate docker compose
+        run: docker compose config -q
