@@ -21,7 +21,11 @@ from pathlib import Path
 
 import duckdb
 from airflow.sdk import Asset, DAG
-from airflow.operators.bash import BashOperator
+
+try:
+    from airflow.providers.standard.operators.bash import BashOperator
+except ImportError:  # pragma: no cover
+    from airflow.operators.bash import BashOperator
 
 try:
     from airflow.providers.standard.operators.python import PythonOperator
@@ -37,7 +41,12 @@ def _load_csv_to_duckdb() -> None:
     db_path = Path(os.environ["DUCKDB_PATH"]).expanduser()
 
     if not csv_path.is_file():
-        raise FileNotFoundError(f"CSV not found: {csv_path}")
+        raise FileNotFoundError(
+            f"CSV not found: {csv_path}\n"
+            "Place employees.csv on the Docker host at "
+            "<project>/data/incoming/employees.csv (mounted to /opt/airflow/data/incoming/). "
+            "Set EMPLOYEES_LOCAL_PATH in .env if you use a different path inside the container."
+        )
 
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
