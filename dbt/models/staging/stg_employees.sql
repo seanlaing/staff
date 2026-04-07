@@ -12,7 +12,7 @@ cleaned as (
             regexp_replace(trim(coalesce(phone, '')), '[^0-9]', ''),
             ''
         ) as phone_digits,
-        current_timestamp() as transformed_at
+        current_timestamp as transformed_at
     from src
 )
 
