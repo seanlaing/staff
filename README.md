@@ -11,6 +11,7 @@ End-to-end pattern: **Apache Airflow 3** loads `employees.csv` into a **local Du
 | `dags/employees_etl.py` | Two DAGs: load CSV (producer **Asset**) → **asset-triggered** `dbt run` |
 | `dbt/` | dbt: `stg_employees` → `dim_employees` + mart aggregates for dashboards |
 | `data/` | `incoming/employees.csv` input; `staff.duckdb` created at runtime (gitignored) |
+| `streamlit/` | Optional local dashboard (`app.py`) reading the same DuckDB marts |
 
 ## Prerequisites
 
@@ -93,6 +94,22 @@ If the database file does not exist yet, run the load step once (Airflow task or
 - **`mart_dashboard_kpis`** — single-row KPIs (totals, distinct dimensions, refresh time).
 
 Point **Metabase, Lightdash, Hex, etc.** at the DuckDB file (or sync these tables elsewhere) and use the `mart_*` models for tiles and `dim_employees` for drill-through.
+
+## Streamlit dashboard (local)
+
+1. Build the DuckDB marts once (Airflow consumer DAG or `dbt run` with `DUCKDB_PATH` set to `./data/staff.duckdb`).
+2. Install and run:
+
+   ```bash
+   cd streamlit
+   python3 -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+   pip install -r requirements.txt
+   streamlit run app.py
+   ```
+
+3. Open the URL Streamlit prints (default **http://localhost:8501**).
+
+The app reads **`data/staff.duckdb`** relative to the repo root, or **`DUCKDB_PATH`** if set. It queries **`mart.*`** tables in **read-only** mode.
 
 ## CI
 
