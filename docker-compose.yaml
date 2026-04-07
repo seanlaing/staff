@@ -26,7 +26,7 @@ x-airflow-common:
     AIRFLOW_CONFIG: "/opt/airflow/config/airflow.cfg"
     # Local DuckDB file + incoming CSV (see .env.example)
     DUCKDB_PATH: ${DUCKDB_PATH:-/opt/airflow/data/staff.duckdb}
-    EMPLOYEES_LOCAL_PATH: ${EMPLOYEES_LOCAL_PATH:-/opt/airflow/data/incoming/employees.csv}
+    DIRECTORY_URL: ${DIRECTORY_URL:-https://directory.house.gov/}
     DBT_PROFILES_DIR: /opt/airflow/dbt
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags

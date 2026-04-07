@@ -1,6 +1,6 @@
-# staff — Employees CSV → DuckDB → dbt
+# staff — House directory → DuckDB → dbt
 
-End-to-end pattern: **Apache Airflow 3** loads `employees.csv` into a **local DuckDB** file, then **dbt** cleans and dedupes into `STAGING` and `MART` schemas inside that same database.
+End-to-end pattern: **Apache Airflow 3** fetches staff directory data from `directory.house.gov`, loads it into a **local DuckDB** file, then **dbt** cleans and aggregates it into dashboard-ready marts.
 
 ## Repository layout
 
@@ -10,13 +10,13 @@ End-to-end pattern: **Apache Airflow 3** loads `employees.csv` into a **local Du
 | `docker/airflow/` | Image extending `apache/airflow:3.1.8` with `duckdb`, `dbt-duckdb`, `standard` provider |
 | `dags/employees_etl.py` | Two DAGs: load CSV (producer **Asset**) → **asset-triggered** `dbt run` |
 | `dbt/` | dbt: `stg_employees` → `dim_employees` + mart aggregates for dashboards |
-| `data/` | `incoming/employees.csv` input; `staff.duckdb` created at runtime (gitignored) |
+| `data/` | `staff.duckdb` created at runtime (gitignored) |
 | `streamlit/` | Optional local dashboard (`app.py`) reading the same DuckDB marts |
 
 ## Prerequisites
 
 - Docker Desktop (or compatible engine) with enough RAM/CPU for Airflow ([Airflow docs](https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#before-you-begin)).
-- Your CSV at `data/incoming/employees.csv` (or override `EMPLOYEES_LOCAL_PATH` in `.env`).
+- Network access to `directory.house.gov` from the Airflow containers (default `DIRECTORY_URL` in `.env.example`).
 
 ## Run locally with Docker (step by step)
 
@@ -31,12 +31,9 @@ End-to-end pattern: **Apache Airflow 3** loads `employees.csv` into a **local Du
    - **Linux only:** set `AIRFLOW_UID=$(id -u)` in `.env` so files in `./logs` and `./data` are not owned by root.
    - **macOS:** leaving `AIRFLOW_UID=50000` as in `.env.example` is usually fine.
 
-3. **Put the CSV** where the DAG expects it:
+3. (Optional) **Override the source URL** in `.env` if needed:
 
-   ```bash
-   mkdir -p data/incoming
-   cp /path/to/employees.csv data/incoming/employees.csv
-   ```
+   - `DIRECTORY_URL=https://directory.house.gov/`
 
 4. **Build and start** Airflow (first run builds the custom image; it can take several minutes):
 
@@ -52,7 +49,7 @@ End-to-end pattern: **Apache Airflow 3** loads `employees.csv` into a **local Du
 
 6. **Run the pipeline**
    - Turn **On** both DAGs: **`employees_load_duckdb`** and **`employees_dbt_transform`**.
-   - **Trigger** **`employees_load_duckdb`** (manual or your own schedule). When **`load_csv_to_duckdb`** succeeds, Airflow updates the logical asset `staff://duckdb/raw/employees_raw` and **automatically schedules** a run of **`employees_dbt_transform`** (no separate trigger needed for dbt).
+   - **Trigger** **`employees_load_duckdb`** (manual or your own schedule). When **`load_to_duckdb`** succeeds, Airflow updates the logical asset `staff://duckdb/raw/employees_raw` and **automatically schedules** a run of **`employees_dbt_transform`** (no separate trigger needed for dbt).
 
 7. **Stop** when done:
 
